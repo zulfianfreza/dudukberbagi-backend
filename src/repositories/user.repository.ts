@@ -1,11 +1,11 @@
 import db from "../database";
-import { LoginSchema, RegisterSchema } from "../types/user";
+import { IUser } from "../types/user";
+import { LoginSchema, RegisterSchema } from "../validations/user";
 
-const findUser = async (input: LoginSchema) => {
-    const query = await db.raw(
-        "select * from users where email = ? and password = ?",
-        [input.email, input.password]
-    );
+const findUser = async (input: Partial<LoginSchema>): Promise<IUser> => {
+    const query = await db.raw("select * from users where email = ? ", [
+        input.email,
+    ]);
 
     return query.rows;
 };

@@ -5,3 +5,9 @@ export interface IUser {
     password: string;
     created_at: Date;
 }
+
+export interface IUserToken {
+    id: number;
+    name: string;
+    email: string;
+}

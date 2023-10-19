@@ -2,6 +2,10 @@ import createHttpError from "http-errors";
 import * as UserRepository from "../repositories/user.repository";
 import { LoginSchema, RegisterSchema } from "../validations/user";
 import bcrypt from "bcrypt";
+import { createUserToken } from "../utils/token-payload";
+import jwt from "jsonwebtoken";
+import config from "../../config";
+import { createJwt } from "../utils/jwt";
 
 const login = async (input: LoginSchema) => {
     const user = await UserRepository.findUser(input);
@@ -10,13 +14,15 @@ const login = async (input: LoginSchema) => {
         throw createHttpError(404, "user not found");
     }
 
-    const isPasswordMatch = bcrypt.compare(input.password, user.password);
+    const isPasswordMatch = await bcrypt.compare(input.password, user.password);
 
     if (!isPasswordMatch) {
         throw createHttpError(401, "password doesn't match");
     }
 
-    return user;
+    const token = createJwt(createUserToken(user));
+
+    return { token };
 };
 
 const register = async (input: RegisterSchema) => {
@@ -24,8 +30,8 @@ const register = async (input: RegisterSchema) => {
 
     const isEmailExist = await UserRepository.findUser({ email });
 
-    if (!isEmailExist) {
-        createHttpError(
+    if (isEmailExist) {
+        throw createHttpError(
             409,
             "user with this email already exists, please login instead"
         );
